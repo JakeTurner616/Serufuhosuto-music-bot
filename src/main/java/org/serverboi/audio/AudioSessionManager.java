@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AudioSessionManager {
     private static final Map<Long, Process> sessions = new ConcurrentHashMap<>();
     private static final Map<Long, Queue<String>> trackQueues = new ConcurrentHashMap<>();
+    private static final Map<Long, String> nowPlaying = new ConcurrentHashMap<>();
 
     public static void register(Guild guild, Process process) {
         sessions.put(guild.getIdLong(), process);
@@ -20,6 +21,7 @@ public class AudioSessionManager {
         if (process != null && process.isAlive()) {
             process.destroy();
         }
+        nowPlaying.remove(guild.getIdLong());
     }
 
     public static boolean isStreaming(Guild guild) {
@@ -44,5 +46,13 @@ public class AudioSessionManager {
     public static void clearQueue(Guild guild) {
         Queue<String> queue = trackQueues.get(guild.getIdLong());
         if (queue != null) queue.clear();
+    }
+
+    public static void setNowPlaying(Guild guild, String url) {
+        nowPlaying.put(guild.getIdLong(), url);
+    }
+
+    public static String getNowPlaying(Guild guild) {
+        return nowPlaying.get(guild.getIdLong());
     }
 }
