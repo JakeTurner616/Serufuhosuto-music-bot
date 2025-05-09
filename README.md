@@ -1,9 +1,5 @@
 <a name="readme-top"></a>
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Stars][stars-shield]][stars-url]
-[![License][license-shield]][license-url]
-
 
 <br />
 <div align="center">
@@ -14,8 +10,6 @@
     <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot"><strong>View the Source »</strong></a>
     <br />
     <br />
-    <a href="#usage">Try It</a>
-    ·
     <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/issues">Report Bug</a>
     ·
     <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/issues">Request Feature</a>
@@ -30,8 +24,8 @@
 
 ✅ No tracking  
 ✅ No third-party APIs  
-✅ Just a fast, queue-friendly music bot that respects your setup.
-✅ Easy to fix when it inevitably breaks
+✅ Easy to fix when it inevitably breaks.
+
 
 ---
 
@@ -116,15 +110,4 @@ The final JAR will be in the `target/` folder.
 ## 📜 License
 
 Distributed under the GNU GPL v3.0 License. See the [LICENSE](LICENSE) file for more information.
-
----
-
-<!-- SHIELDS -->
-
-[contributors-shield]: https://img.shields.io/github/contributors/JakeTurner616/Serufuhosuto-music-bot.svg?style=for-the-badge
-[contributors-url]: https://github.com/JakeTurner616/Serufuhosuto-music-bot/graphs/contributors
-[stars-shield]: https://img.shields.io/github/stars/JakeTurner616/Serufuhosuto-music-bot.svg?style=for-the-badge
-[stars-url]: https://github.com/JakeTurner616/Serufuhosuto-music-bot/stargazers
-[license-shield]: https://img.shields.io/github/license/JakeTurner616/Serufuhosuto-music-bot.svg?style=for-the-badge
-[license-url]: https://github.com/JakeTurner616/Serufuhosuto-music-bot/blob/main/LICENSE
 
