@@ -1,0 +1,31 @@
+# Maven target output
+/target/
+
+# IntelliJ IDEA / VSCode / Eclipse settings
+/.idea/
+/*.iml
+/.classpath
+/.project
+/.settings/
+/.vscode/
+
+# Logs
+*.log
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Compiled class files
+*.class
+
+# Build artifacts
+*.jar
+dependency-reduced-pom.xml
+
+# Local config
+config.json
+
+# Shell scripts (optional — untrack if generated or private)
+serialize_project.sh
+serialized_project.txt
