@@ -1,0 +1,7 @@
+{
+    "token": "your_token_here",
+    "prefix": ".",
+    "ffmpegPath": "ffmpeg",
+    "ytQuality": "bestaudio[ext=m4a]"
+  }
+  
