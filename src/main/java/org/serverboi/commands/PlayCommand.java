@@ -22,10 +22,10 @@ public class PlayCommand extends ListenerAdapter {
         boolean isAlias = content.startsWith(prefix + "p ");
         if (!isPlay && !isAlias) return;
 
-        String url = content.substring((isPlay ? prefix.length() + 5 : prefix.length() + 2)).trim();
+        String rawInput = content.substring((isPlay ? prefix.length() + 5 : prefix.length() + 2)).trim();
         var guild = event.getGuild();
 
-        event.getChannel().sendTyping().queue(); // ✅ show "typing..." while resolving
+        event.getChannel().sendTyping().queue();
 
         try {
             Process versionProc = new ProcessBuilder("yt-dlp", "--version")
@@ -38,18 +38,39 @@ public class PlayCommand extends ListenerAdapter {
             System.err.println("[ERROR] Failed to check yt-dlp version: " + ve.getMessage());
         }
 
-        System.out.println("[DEBUG] Received play command: " + url);
+        System.out.println("[DEBUG] Received play command: " + rawInput);
 
+        boolean isURL = rawInput.startsWith("http://") || rawInput.startsWith("https://");
+        String normalizedQuery = isURL ? rawInput : "ytsearch1:" + rawInput;
+
+        // If something is already playing, add to queue and return
         if (AudioSessionManager.isStreaming(guild)) {
-            AudioSessionManager.enqueue(guild, url);
-            event.getChannel().sendMessage("➕ Added to queue.").queue();
-            System.out.println("[DEBUG] Added to queue.");
+            String title = rawInput;
+            if (!isURL) {
+                try {
+                    Process meta = new ProcessBuilder(
+                        "yt-dlp", "--no-playlist", "--print", "%(title)s", normalizedQuery
+                    ).start();
+                    BufferedReader metaReader = new BufferedReader(new InputStreamReader(meta.getInputStream()));
+                    String fetchedTitle = metaReader.readLine();
+                    if (fetchedTitle != null && !fetchedTitle.isEmpty()) {
+                        title = fetchedTitle;
+                    }
+                } catch (Exception e) {
+                    System.err.println("[WARN] Could not resolve title for queued track.");
+                }
+            }
+
+            AudioSessionManager.enqueue(guild, normalizedQuery);
+            event.getChannel().sendMessage("➕ Added to queue: " + title).queue();
+            System.out.println("[DEBUG] Added to queue: " + title);
             return;
         }
 
         try {
+            // Get direct audio stream URL
             Process yt = new ProcessBuilder(
-                "yt-dlp", "-f", "bestaudio[ext=m4a]/bestaudio", "-g", url
+                "yt-dlp", "-f", "bestaudio[ext=m4a]/bestaudio", "-g", normalizedQuery
             ).redirectErrorStream(true).start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(yt.getInputStream()));
@@ -68,6 +89,19 @@ public class PlayCommand extends ListenerAdapter {
                 event.getChannel().sendMessage("❌ Failed to get a valid audio stream URL from yt-dlp.").queue();
                 System.err.println("[ERROR] yt-dlp did not return a usable URL.");
                 return;
+            }
+
+            // Get the title (if search query)
+            String title = rawInput;
+            if (!isURL) {
+                Process meta = new ProcessBuilder(
+                    "yt-dlp", "--no-playlist", "--print", "%(title)s", normalizedQuery
+                ).start();
+                BufferedReader metaReader = new BufferedReader(new InputStreamReader(meta.getInputStream()));
+                String fetchedTitle = metaReader.readLine();
+                if (fetchedTitle != null && !fetchedTitle.isEmpty()) {
+                    title = fetchedTitle;
+                }
             }
 
             System.out.println("[DEBUG] Stream URL: " + streamUrl);
@@ -110,10 +144,10 @@ public class PlayCommand extends ListenerAdapter {
 
             audioManager.setSendingHandler(new StreamSendHandler(ffmpeg.getInputStream(), onEnd));
             AudioSessionManager.register(guild, ffmpeg);
-            AudioSessionManager.setNowPlaying(guild, url);
+            AudioSessionManager.setNowPlaying(guild, normalizedQuery);
 
-            event.getChannel().sendMessage("🔊 Now streaming: " + url).queue();
-            System.out.println("[DEBUG] Streaming started.");
+            event.getChannel().sendMessage("🔊 Now streaming: " + title).queue();
+            System.out.println("[DEBUG] Streaming started: " + title);
 
         } catch (Exception e) {
             e.printStackTrace();

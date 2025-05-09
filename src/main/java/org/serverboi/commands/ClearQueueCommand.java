@@ -14,8 +14,14 @@ public class ClearQueueCommand extends ListenerAdapter {
         String prefix = BotLauncher.config.getString("prefix");
 
         if (content.equalsIgnoreCase(prefix + "clear")) {
+            boolean hadQueue = AudioSessionManager.hasQueue(event.getGuild());
             AudioSessionManager.clearQueue(event.getGuild());
-            event.getChannel().sendMessage("🧹 Cleared the queue.").queue();
+
+            if (hadQueue) {
+                event.getChannel().sendMessage("🧹 Cleared the queue.").queue();
+            } else {
+                event.getChannel().sendMessage("ℹ️ The queue was already empty.").queue();
+            }
         }
     }
 }

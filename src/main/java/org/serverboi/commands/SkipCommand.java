@@ -23,14 +23,14 @@ public class SkipCommand extends ListenerAdapter {
             AudioSessionManager.stop(guild);
 
             if (AudioSessionManager.hasQueue(guild)) {
-                String nextUrl = AudioSessionManager.dequeue(guild);
-                if (nextUrl != null) {
-                    event.getChannel().sendMessage("⏭ Skipping to next: " + nextUrl).queue();
+                String nextQuery = AudioSessionManager.dequeue(guild);
+                if (nextQuery != null) {
                     event.getChannel().sendTyping().queue();
 
                     try {
+                        // Fetch stream URL
                         Process yt = new ProcessBuilder(
-                            "yt-dlp", "-f", "bestaudio[ext=m4a]/bestaudio", "-g", nextUrl
+                            "yt-dlp", "-f", "bestaudio[ext=m4a]/bestaudio", "-g", nextQuery
                         ).redirectErrorStream(true).start();
 
                         BufferedReader reader = new BufferedReader(new InputStreamReader(yt.getInputStream()));
@@ -48,6 +48,20 @@ public class SkipCommand extends ListenerAdapter {
                             return;
                         }
 
+                        // Optionally get title if search
+                        String title = nextQuery;
+                        if (nextQuery.startsWith("ytsearch1:")) {
+                            Process meta = new ProcessBuilder(
+                                "yt-dlp", "--no-playlist", "--print", "%(title)s", nextQuery
+                            ).start();
+                            BufferedReader metaReader = new BufferedReader(new InputStreamReader(meta.getInputStream()));
+                            String fetchedTitle = metaReader.readLine();
+                            if (fetchedTitle != null && !fetchedTitle.isEmpty()) {
+                                title = fetchedTitle;
+                            }
+                        }
+
+                        // FFmpeg stream
                         Process ffmpeg = new ProcessBuilder(
                             BotLauncher.config.getString("ffmpegPath"),
                             "-i", streamUrl,
@@ -65,13 +79,17 @@ public class SkipCommand extends ListenerAdapter {
                             if (AudioSessionManager.hasQueue(guild)) {
                                 String queued = AudioSessionManager.dequeue(guild);
                                 if (queued != null) {
-                                    event.getMessage().getChannel().sendMessage(prefix + "play " + queued).queue();
+                                    event.getChannel().sendMessage(prefix + "play " + queued).queue();
                                 }
                             }
                         }));
 
                         AudioSessionManager.register(guild, ffmpeg);
-                        AudioSessionManager.setNowPlaying(guild, nextUrl);
+                        AudioSessionManager.setNowPlaying(guild, nextQuery);
+
+                        event.getChannel().sendMessage("⏭ Skipping to: " + title).queue();
+                        System.out.println("[DEBUG] Skipped to: " + title);
+
                     } catch (Exception e) {
                         event.getChannel().sendMessage("❌ Error playing next track: " + e.getMessage()).queue();
                         e.printStackTrace();
