@@ -4,12 +4,16 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class StreamSendHandler implements AudioSendHandler {
     private final InputStream stream;
-    private final byte[] buffer = new byte[3840]; // 20ms @ 48kHz stereo 16-bit
+    private final byte[] buffer = new byte[3840]; // 20ms of 48kHz stereo 16-bit PCM
     private final Runnable onEnd;
+
     private boolean firstFrame = true;
+    private boolean ended = false; // Ensure onEnd is only triggered once
+    private boolean sendSilenceOnce = false; // Send silence one frame after EOF
 
     public StreamSendHandler(InputStream stream, Runnable onEnd) {
         this.stream = stream;
@@ -20,7 +24,7 @@ public class StreamSendHandler implements AudioSendHandler {
     @Override
     public boolean canProvide() {
         try {
-            return stream.available() > 0;
+            return !ended && (stream.available() > 0 || sendSilenceOnce);
         } catch (Exception e) {
             System.err.println("[ERROR] canProvide check failed: " + e.getMessage());
             return false;
@@ -29,12 +33,24 @@ public class StreamSendHandler implements AudioSendHandler {
 
     @Override
     public ByteBuffer provide20MsAudio() {
+        if (ended && sendSilenceOnce) {
+            // Send a single silence frame after EOF to flush Discord pipeline
+            Arrays.fill(buffer, (byte) 0);
+            sendSilenceOnce = false;
+            return ByteBuffer.wrap(buffer);
+        }
+
         try {
             int totalRead = 0;
             while (totalRead < buffer.length) {
                 int read = stream.read(buffer, totalRead, buffer.length - totalRead);
                 if (read == -1) {
-                    onEnd.run(); // end of stream
+                    if (!ended) {
+                        ended = true;
+                        sendSilenceOnce = true;
+                        onEnd.run();
+                        System.out.println("[DEBUG] End of stream detected. Sending silence frame.");
+                    }
                     return null;
                 }
                 totalRead += read;
@@ -45,8 +61,12 @@ public class StreamSendHandler implements AudioSendHandler {
                 firstFrame = false;
             }
 
-            return ByteBuffer.wrap(buffer, 0, totalRead);
+            // If we got fewer than 3840 bytes, pad with silence
+            if (totalRead < buffer.length) {
+                Arrays.fill(buffer, totalRead, buffer.length, (byte) 0);
+            }
 
+            return ByteBuffer.wrap(buffer, 0, buffer.length);
         } catch (Exception e) {
             System.err.println("[ERROR] Audio stream read failed: " + e.getMessage());
             return null;
@@ -55,6 +75,6 @@ public class StreamSendHandler implements AudioSendHandler {
 
     @Override
     public boolean isOpus() {
-        return false;
+        return false; // we're sending raw PCM
     }
 }
