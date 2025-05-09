@@ -38,11 +38,11 @@ public class SeekCommand extends ListenerAdapter {
                 return;
             }
 
-            event.getChannel().sendTyping().queue(); // ✅ Show typing indicator
+            event.getChannel().sendTyping().queue();
 
             try {
                 Process yt = new ProcessBuilder(
-                    "yt-dlp", "-f", "bestaudio[ext=m4a]/bestaudio", "-g", url
+                    "yt-dlp", "-f", BotLauncher.config.getString("ytQuality"), "-g", url
                 ).redirectErrorStream(true).start();
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(yt.getInputStream()));
@@ -62,11 +62,11 @@ public class SeekCommand extends ListenerAdapter {
 
                 Process ffmpeg = new ProcessBuilder(
                     BotLauncher.config.getString("ffmpegPath"),
-                    "-i", streamUrl,
-                    "-ss", String.valueOf(seconds),
                     "-reconnect", "1",
                     "-reconnect_streamed", "1",
                     "-reconnect_delay_max", "5",
+                    "-ss", String.valueOf(seconds),
+                    "-i", streamUrl,
                     "-vn", "-f", "s16be", "-ar", "48000", "-ac", "2", "-loglevel", "error", "pipe:1"
                 ).start();
 

@@ -30,7 +30,7 @@ public class SkipCommand extends ListenerAdapter {
                     try {
                         // Fetch stream URL
                         Process yt = new ProcessBuilder(
-                            "yt-dlp", "-f", "bestaudio[ext=m4a]/bestaudio", "-g", nextQuery
+                            "yt-dlp", "-f", BotLauncher.config.getString("ytQuality"), "-g", nextQuery
                         ).redirectErrorStream(true).start();
 
                         BufferedReader reader = new BufferedReader(new InputStreamReader(yt.getInputStream()));
@@ -64,6 +64,9 @@ public class SkipCommand extends ListenerAdapter {
                         // FFmpeg stream
                         Process ffmpeg = new ProcessBuilder(
                             BotLauncher.config.getString("ffmpegPath"),
+                            "-reconnect", "1",
+                            "-reconnect_streamed", "1",
+                            "-reconnect_delay_max", "5",
                             "-i", streamUrl,
                             "-vn",
                             "-f", "s16be",

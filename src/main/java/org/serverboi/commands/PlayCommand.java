@@ -43,7 +43,6 @@ public class PlayCommand extends ListenerAdapter {
         boolean isURL = rawInput.startsWith("http://") || rawInput.startsWith("https://");
         String normalizedQuery = isURL ? rawInput : "ytsearch1:" + rawInput;
 
-        // If something is already playing, add to queue and return
         if (AudioSessionManager.isStreaming(guild)) {
             String title = rawInput;
             if (!isURL) {
@@ -68,9 +67,8 @@ public class PlayCommand extends ListenerAdapter {
         }
 
         try {
-            // Get direct audio stream URL
             Process yt = new ProcessBuilder(
-                "yt-dlp", "-f", "bestaudio[ext=m4a]/bestaudio", "-g", normalizedQuery
+                "yt-dlp", "-f", BotLauncher.config.getString("ytQuality"), "-g", normalizedQuery
             ).redirectErrorStream(true).start();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(yt.getInputStream()));
@@ -91,7 +89,6 @@ public class PlayCommand extends ListenerAdapter {
                 return;
             }
 
-            // Get the title (if search query)
             String title = rawInput;
             if (!isURL) {
                 Process meta = new ProcessBuilder(
@@ -120,6 +117,9 @@ public class PlayCommand extends ListenerAdapter {
 
             Process ffmpeg = new ProcessBuilder(
                 BotLauncher.config.getString("ffmpegPath"),
+                "-reconnect", "1",
+                "-reconnect_streamed", "1",
+                "-reconnect_delay_max", "5",
                 "-i", streamUrl,
                 "-vn",
                 "-f", "s16be",
@@ -127,7 +127,7 @@ public class PlayCommand extends ListenerAdapter {
                 "-ac", "2",
                 "-loglevel", "error",
                 "pipe:1"
-            ).redirectErrorStream(true).start();
+            ).start();
 
             Runnable onEnd = () -> {
                 System.out.println("[DEBUG] Track ended.");
