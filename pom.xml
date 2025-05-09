@@ -4,7 +4,7 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.serverboi</groupId>
-    <artifactId>discord-stream-bot</artifactId>
+    <artifactId>Serufuhosuto-music-bot</artifactId>
     <version>1.0</version>
 
     <properties>
