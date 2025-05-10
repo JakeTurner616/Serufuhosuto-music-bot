@@ -7,24 +7,16 @@
     A minimal, high-quality Discord music streaming bot — built for real-time, self-hosted control with near zero bloat.
     <br />
     <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot"><strong>View the Source »</strong></a>
-    <br />
-    <br />
+    <br /><br />
   </p>
 
-  <!-- ✅ Compact single-row badge block -->
+  <!-- ✅ Pure Markdown badge block (no HTML artifacts) -->
   <p align="center">
-    <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/actions/workflows/manual-release.yml">
-      <img src="https://img.shields.io/github/actions/workflow/status/JakeTurner616/Serufuhosuto-music-bot/manual-release.yml?label=Build&style=for-the-badge" alt="Build Status">
-    </a>
-    <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/releases">
-      <img src="https://img.shields.io/github/v/release/JakeTurner616/Serufuhosuto-music-bot?label=Release&style=for-the-badge" alt="Latest Release">
-    </a>
-    <a href="https://github.com/yt-dlp/yt-dlp/actions">
-      <img src="https://img.shields.io/github/actions/workflow/status/yt-dlp/yt-dlp/core.yml?branch=master&label=yt-dlp%20Build&style=for-the-badge" alt="yt-dlp CI">
-    </a>
-    <a href="https://github.com/yt-dlp/yt-dlp/releases">
-      <img src="https://img.shields.io/github/v/release/yt-dlp/yt-dlp?color=brightgreen&label=yt-dlp%20latest&style=for-the-badge" alt="yt-dlp latest">
-    </a>
+
+  [![Build](https://img.shields.io/github/actions/workflow/status/JakeTurner616/Serufuhosuto-music-bot/manual-release.yml?label=Build&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/actions/workflows/manual-release.yml "Build Status")
+  [![Release](https://img.shields.io/github/v/release/JakeTurner616/Serufuhosuto-music-bot?label=Release&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/releases "Latest Release")
+  [![yt-dlp CI](https://img.shields.io/github/actions/workflow/status/yt-dlp/yt-dlp/core.yml?branch=master&label=yt-dlp%20Build&style=for-the-badge)](https://github.com/yt-dlp/yt-dlp/actions "yt-dlp CI")
+  [![yt-dlp Release](https://img.shields.io/github/v/release/yt-dlp/yt-dlp?color=brightgreen&label=yt-dlp%20latest&style=for-the-badge)](https://github.com/yt-dlp/yt-dlp/releases "yt-dlp Latest")
   </p>
 </div>
 
@@ -33,6 +25,7 @@
 ## About The Project
 
 セルフホスト (Self Hosted) Music Bot is a modern, sleek Java-based Discord bot built for high-quality music streaming using `yt-dlp` and `ffmpeg`. Built to solve the problem of overcomplicated and unreliable self-hosted discord music bots.
+
 
 ✅ No tracking  
 ✅ No third-party APIs  
