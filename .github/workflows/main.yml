@@ -40,7 +40,7 @@ jobs:
       - name: 📦 Generate Badge-Friendly JSON
         run: |
           LOC=$(jq '.Java.code' metrics/cloc.json)
-          CCN=$(grep -A1 'Avg CCN' metrics/lizard.txt | tail -n1 | awk '{print $2}')
+          CCN=$(awk '/^Total nloc/{getline; print $3}' metrics/lizard.txt)
           echo "{\"loc\": $LOC, \"avg_ccn\": $CCN}" > metrics/summary.json
 
       - name: 📤 Commit and Push Metrics
