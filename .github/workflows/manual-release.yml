@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., 1.0.0)'
+        description: 'Release version (must match pom.xml)'
         required: true
         type: string
       notes:
@@ -25,6 +25,18 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
+
+    # ✅ Install ffmpeg
+    - name: Install ffmpeg
+      run: |
+        sudo apt update
+        sudo apt install -y ffmpeg
+
+    # ✅ Install yt-dlp
+    - name: Install yt-dlp
+      run: |
+        sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+        sudo chmod a+rx /usr/local/bin/yt-dlp
 
     - name: Build and Test with Maven
       run: mvn clean package
