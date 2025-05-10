@@ -41,23 +41,16 @@ jobs:
           lizard ./src/main/java > metrics/lizard.txt || true
           cat metrics/lizard.txt
 
-      - name: 📦 Generate Badge-Friendly JSON
+      - name: 🧠 Generate Lizard Metrics (JSON)
         run: |
-          LOC=$(jq '.Java.code' metrics/cloc.json)
-          CCN=$(awk '/^Total nloc/ {getline; gsub(/^ +| +$/, "", $0); split($0,a,/ +/); print a[3]}' metrics/lizard.txt)
-
-          echo "📏 LOC = $LOC"
-          echo "🧠 Avg CCN = $CCN"
-
-          echo "{\"loc\": $LOC, \"avg_ccn\": $CCN}" > metrics/summary.json
-
-          echo "📂 Final metrics directory contents:"
-          ls -lh metrics/
+          mkdir -p metrics
+          lizard -l java -C -j ./src/main/java > metrics/lizard.json
+          cat metrics/lizard.json
 
       - name: 📦 Generate Badge-Friendly JSON
         run: |
           LOC=$(jq '.Java.code' metrics/cloc.json)
-          CCN=$(awk '/^Total nloc/ {getline; $1=$1; print $3}' metrics/lizard.txt)
+          CCN=$(jq '.summary.avg_ccn' metrics/lizard.json)
 
           echo "📏 LOC = $LOC"
           echo "🧠 Avg CCN = $CCN"
