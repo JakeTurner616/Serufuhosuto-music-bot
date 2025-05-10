@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧾 Checkout using PAT (v4)
+      - name: 🧾 Checkout with GitHub Token
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}
+          persist-credentials: true
 
       - name: 🛠 Install cloc
         run: sudo apt-get install -y cloc
@@ -43,10 +43,14 @@ jobs:
           CCN=$(awk '/^Total nloc/{getline; print $3}' metrics/lizard.txt)
           echo "{\"loc\": $LOC, \"avg_ccn\": $CCN}" > metrics/summary.json
 
-      - name: 📤 Commit and Push Metrics
+      - name: 📤 Commit and Push Metrics as Bot
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add metrics/cloc.json metrics/lizard.txt metrics/summary.json
-          git diff --cached --quiet || git commit -m "📊 Update code metrics [skip ci]"
-          git push origin HEAD:main
+          git add -A metrics/
+          if ! git diff --cached --quiet; then
+            git commit -m "📊 Update code metrics [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "ℹ️ No metric changes to commit."
+          fi
