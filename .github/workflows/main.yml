@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write  # needed for pushing code
+  contents: write  # Required to commit and push changes
 
 jobs:
   metrics:
@@ -35,10 +35,16 @@ jobs:
           echo "🧠 Running lizard..."
           lizard ./src/main/java > metrics/lizard.txt || true
 
+      - name: 📦 Generate Badge-Friendly JSON
+        run: |
+          LOC=$(jq '.Java.code' metrics/cloc.json)
+          CCN=$(grep -A1 'Avg CCN' metrics/lizard.txt | tail -n1 | awk '{print $2}')
+          echo "{\"loc\": $LOC, \"avg_ccn\": $CCN}" > metrics/summary.json
+
       - name: 📤 Commit and Push Metrics
         run: |
           git config user.name "JakeTurner616"
           git config user.email "your_email@example.com"
-          git add metrics/cloc.json metrics/lizard.txt
+          git add metrics/cloc.json metrics/lizard.txt metrics/summary.json
           git diff --cached --quiet || git commit -m "📊 Update code metrics"
           git push origin HEAD:main
