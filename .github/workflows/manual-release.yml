@@ -26,22 +26,10 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    # ✅ Install ffmpeg
-    - name: Install ffmpeg
-      run: |
-        sudo apt update
-        sudo apt install -y ffmpeg
+    - name: Build JAR (skip tests)
+      run: mvn clean package -DskipTests
 
-    # ✅ Install yt-dlp
-    - name: Install yt-dlp
-      run: |
-        sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-        sudo chmod a+rx /usr/local/bin/yt-dlp
-
-    - name: Build and Test with Maven
-      run: mvn clean package
-
-    - name: Get JAR name
+    - name: Get JAR path
       id: get_jar
       run: |
         echo "file=$(ls target/*.jar | grep -v 'original' | head -n 1)" >> "$GITHUB_OUTPUT"
