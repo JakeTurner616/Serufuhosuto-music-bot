@@ -1,0 +1,52 @@
+================================================
+  NLOC    CCN   token  PARAM  length  location  
+------------------------------------------------
+       8      3     98      1      10 VoiceStateListener::onGuildVoiceUpdate@9-18@./src/main/java/org/serverboi/listeners/VoiceStateListener.java
+       3      1     23      2       3 AudioSessionManager::register@15-17@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       7      3     52      1       7 AudioSessionManager::stop@19-25@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       4      2     32      1       4 AudioSessionManager::isStreaming@27-30@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       3      1     35      2       3 AudioSessionManager::enqueue@32-34@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       4      2     39      1       4 AudioSessionManager::dequeue@36-39@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       4      2     36      1       4 AudioSessionManager::hasQueue@41-44@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       4      2     36      1       4 AudioSessionManager::clearQueue@46-49@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       3      1     23      2       3 AudioSessionManager::setNowPlaying@51-53@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       3      1     19      1       3 AudioSessionManager::getNowPlaying@55-57@./src/main/java/org/serverboi/audio/AudioSessionManager.java
+       5      1     31      2       5 StreamSendHandler::StreamSendHandler@18-22@./src/main/java/org/serverboi/audio/StreamSendHandler.java
+       8      4     49      0       8 StreamSendHandler::canProvide@25-32@./src/main/java/org/serverboi/audio/StreamSendHandler.java
+      34      9    209      0      40 StreamSendHandler::provide20MsAudio@35-74@./src/main/java/org/serverboi/audio/StreamSendHandler.java
+       3      1      8      0       3 StreamSendHandler::isOpus@77-79@./src/main/java/org/serverboi/audio/StreamSendHandler.java
+     122     25   1014      1     142 PlayCommand::onMessageReceived@15-156@./src/main/java/org/serverboi/commands/PlayCommand.java
+      76     14    562      1      91 SkipCommand::onMessageReceived@15-105@./src/main/java/org/serverboi/commands/SkipCommand.java
+      12      3    111      1      19 LeaveCommand::onMessageReceived@10-28@./src/main/java/org/serverboi/commands/LeaveCommand.java
+      14      4    123      1      17 ClearQueueCommand::onMessageReceived@10-26@./src/main/java/org/serverboi/commands/ClearQueueCommand.java
+      62     10    499      1      74 SeekCommand::onMessageReceived@14-87@./src/main/java/org/serverboi/commands/SeekCommand.java
+      17      4    155      1      17 SeekCommand::parseTimeToSeconds@89-105@./src/main/java/org/serverboi/commands/SeekCommand.java
+      10      3    100      1      12 StopCommand::onMessageReceived@10-21@./src/main/java/org/serverboi/commands/StopCommand.java
+      23      1    102      1      25 BotLauncher::main@19-43@./src/main/java/org/serverboi/BotLauncher.java
+      20      4    144      0      22 BotLauncher::loadConfig@45-66@./src/main/java/org/serverboi/BotLauncher.java
+      16      3     98      0      16 BotLauncher::verifyFfmpegAvailable@68-83@./src/main/java/org/serverboi/BotLauncher.java
+10 file analyzed.
+==============================================================
+NLOC    Avg.NLOC  AvgCCN  Avg.token  function_cnt    file
+--------------------------------------------------------------
+     15       8.0     3.0       98.0         1     ./src/main/java/org/serverboi/listeners/VoiceStateListener.java
+     46       3.9     1.7       32.8         9     ./src/main/java/org/serverboi/audio/AudioSessionManager.java
+     66      12.5     3.8       74.2         4     ./src/main/java/org/serverboi/audio/StreamSendHandler.java
+    134     122.0    25.0     1014.0         1     ./src/main/java/org/serverboi/commands/PlayCommand.java
+     88      76.0    14.0      562.0         1     ./src/main/java/org/serverboi/commands/SkipCommand.java
+     20      12.0     3.0      111.0         1     ./src/main/java/org/serverboi/commands/LeaveCommand.java
+     22      14.0     4.0      123.0         1     ./src/main/java/org/serverboi/commands/ClearQueueCommand.java
+     90      39.5     7.0      327.0         2     ./src/main/java/org/serverboi/commands/SeekCommand.java
+     18      10.0     3.0      100.0         1     ./src/main/java/org/serverboi/commands/StopCommand.java
+     74      19.7     2.7      114.7         3     ./src/main/java/org/serverboi/BotLauncher.java
+
+===========================================================================================================
+!!!! Warnings (cyclomatic_complexity > 15 or length > 1000 or nloc > 1000000 or parameter_count > 100) !!!!
+================================================
+  NLOC    CCN   token  PARAM  length  location  
+------------------------------------------------
+     122     25   1014      1     142 PlayCommand::onMessageReceived@15-156@./src/main/java/org/serverboi/commands/PlayCommand.java
+==========================================================================================
+Total nloc   Avg.NLOC  AvgCCN  Avg.token   Fun Cnt  Warning cnt   Fun Rt   nloc Rt
+------------------------------------------------------------------------------------------
+       573      19.4     4.3      149.9       24            1      0.04    0.26
