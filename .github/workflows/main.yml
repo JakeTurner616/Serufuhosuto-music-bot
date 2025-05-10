@@ -32,11 +32,11 @@ jobs:
 
       - name: 📤 Commit Metrics to Repo
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --global user.name "JakeTurner616"
-          git config --global user.email "jake@serverboi.org"
-          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/JakeTurner616/Serufuhosuto-music-bot.git
-          git add metrics/cloc.json metrics/lizard.txt || true
+          git config --global user.email "your_email@example.com"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/JakeTurner616/Serufuhosuto-music-bot.git
+          git add metrics/cloc.json metrics/lizard.txt
           git diff --cached --quiet || git commit -m "📊 Update code metrics"
-          git push origin main
+          git push origin HEAD:main
