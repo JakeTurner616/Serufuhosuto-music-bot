@@ -45,12 +45,11 @@ jobs:
 
       - name: 📤 Commit and Push Metrics as Bot
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A metrics/
-          if ! git diff --cached --quiet; then
-            git commit -m "📊 Update code metrics [skip ci]"
-            git push origin HEAD:main
-          else
-            echo "ℹ️ No metric changes to commit."
-          fi
+          mkdir -p metrics
+          echo "🧮 Running cloc..."
+          cloc ./src/main/java --exclude-dir=target,test --json > metrics/cloc.json
+          cat metrics/cloc.json
+
+          echo "🧠 Running lizard..."
+          lizard ./src/main/java > metrics/lizard.txt
+          cat metrics/lizard.txt
