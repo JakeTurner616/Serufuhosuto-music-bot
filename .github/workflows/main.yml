@@ -29,25 +29,20 @@ jobs:
       - name: ✅ Verify Source Path
         run: test -d ./src/main/java || (echo "❌ Source path not found!" && exit 1)
 
-      - name: 📊 Generate Code Metrics
+      - name: 📊 Generate cloc Metrics
         run: |
           mkdir -p metrics
-
           echo "🧮 Running cloc..."
           cloc ./src/main/java --exclude-dir=target,test --json > metrics/cloc.json
           cat metrics/cloc.json
 
-          echo "🧠 Running lizard (non-fatal)..."
-          lizard ./src/main/java > metrics/lizard.txt || true
-          cat metrics/lizard.txt
-
       - name: 🧠 Generate Lizard Metrics (JSON)
         run: |
-          mkdir -p metrics
+          echo "📈 Running lizard (JSON)..."
           lizard -l java -C -j ./src/main/java > metrics/lizard.json
           cat metrics/lizard.json
 
-      - name: 📦 Generate Badge-Friendly JSON
+      - name: 📦 Generate Badge-Friendly summary.json
         run: |
           LOC=$(jq '.Java.code' metrics/cloc.json)
           CCN=$(jq '.summary.avg_ccn' metrics/lizard.json)
@@ -59,3 +54,15 @@ jobs:
 
           echo "📂 Final metrics directory contents:"
           ls -lh metrics/
+
+      - name: 📤 Commit and Push Metrics as Bot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A metrics/
+          if ! git diff --cached --quiet; then
+            git commit -m "📊 Update code metrics [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "ℹ️ No metric changes to commit."
+          fi
