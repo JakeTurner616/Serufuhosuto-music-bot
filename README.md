@@ -1,6 +1,5 @@
 <a name="readme-top"></a>
 
-
 <br />
 <div align="center">
   <h1>セルフホスト (Self Hosted) Music Bot 🎵</h1>
@@ -10,9 +9,22 @@
     <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot"><strong>View the Source »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/issues">Request Feature</a>
+  </p>
+
+  <!-- ✅ Compact single-row badge block -->
+  <p align="center">
+    <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/actions/workflows/manual-release.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/JakeTurner616/Serufuhosuto-music-bot/manual-release.yml?label=Build&style=for-the-badge" alt="Build Status">
+    </a>
+    <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot/releases">
+      <img src="https://img.shields.io/github/v/release/JakeTurner616/Serufuhosuto-music-bot?label=Release&style=for-the-badge" alt="Latest Release">
+    </a>
+    <a href="https://github.com/yt-dlp/yt-dlp/actions">
+      <img src="https://img.shields.io/github/actions/workflow/status/yt-dlp/yt-dlp/core.yml?branch=master&label=yt-dlp%20Build&style=for-the-badge" alt="yt-dlp CI">
+    </a>
+    <a href="https://github.com/yt-dlp/yt-dlp/releases">
+      <img src="https://img.shields.io/github/v/release/yt-dlp/yt-dlp?color=brightgreen&label=yt-dlp%20latest&style=for-the-badge" alt="yt-dlp latest">
+    </a>
   </p>
 </div>
 
@@ -20,7 +32,7 @@
 
 ## About The Project
 
-セルフホスト (Self Hosted) Music Bot is a modern, sleek Java-based Discord bot built for high-quality music streaming using `yt-dlp` and `ffmpeg`. Built to solve the problem of overcomplicated and unreliable self-hosted discord msuic bots.
+セルフホスト (Self Hosted) Music Bot is a modern, sleek Java-based Discord bot built for high-quality music streaming using `yt-dlp` and `ffmpeg`. Built to solve the problem of overcomplicated and unreliable self-hosted discord music bots.
 
 ✅ No tracking  
 ✅ No third-party APIs  
