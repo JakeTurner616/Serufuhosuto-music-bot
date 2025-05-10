@@ -38,8 +38,8 @@ jobs:
 
       - name: 🧠 Generate Lizard Metrics (JSON)
         run: |
-          echo "📈 Running lizard (JSON)..."
-          lizard -l java -C -j ./src/main/java > metrics/lizard.json
+          echo "📈 Running lizard in JSON mode..."
+          lizard -l java -C 15 -j ./src/main/java > metrics/lizard.json
           cat metrics/lizard.json
 
       - name: 📦 Generate Badge-Friendly summary.json
