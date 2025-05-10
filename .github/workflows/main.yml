@@ -44,7 +44,7 @@ jobs:
       - name: 📦 Generate Badge-Friendly JSON
         run: |
           LOC=$(jq '.Java.code' metrics/cloc.json)
-          CCN=$(awk '/^Total nloc/{getline; print $3}' metrics/lizard.txt)
+          CCN=$(awk '/^Total nloc/ {getline; gsub(/^ +| +$/, "", $0); split($0,a,/ +/); print a[3]}' metrics/lizard.txt)
 
           echo "📏 LOC = $LOC"
           echo "🧠 Avg CCN = $CCN"
