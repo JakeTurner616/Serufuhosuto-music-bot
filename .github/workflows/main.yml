@@ -1,0 +1,32 @@
+name: Code Metrics
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install cloc
+        run: sudo apt-get install -y cloc
+
+      - name: Install Lizard
+        run: pip install lizard
+
+      - name: Generate Code Metrics
+        run: |
+          mkdir -p metrics
+          cloc ./src --exclude-dir=target,test --json > metrics/cloc.json
+          lizard ./src > metrics/lizard.txt
+
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-metrics
+          path: metrics/
