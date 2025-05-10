@@ -36,16 +36,16 @@ jobs:
           cloc ./src/main/java --exclude-dir=target,test --json > metrics/cloc.json
           cat metrics/cloc.json
 
-      - name: 🧠 Generate Lizard Metrics (JSON)
+      - name: 🧠 Generate Lizard Metrics (text)
         run: |
-          echo "📈 Running lizard in JSON mode..."
-          lizard -l java -C 15 -j ./src/main/java > metrics/lizard.json
-          cat metrics/lizard.json
+          echo "📈 Running lizard..."
+          lizard ./src/main/java > metrics/lizard.txt || true
+          cat metrics/lizard.txt
 
       - name: 📦 Generate Badge-Friendly summary.json
         run: |
           LOC=$(jq '.Java.code' metrics/cloc.json)
-          CCN=$(jq '.summary.avg_ccn' metrics/lizard.json)
+          CCN=$(awk '/^Total nloc/ {getline; $1=$1; print $3}' metrics/lizard.txt)
 
           echo "📏 LOC = $LOC"
           echo "🧠 Avg CCN = $CCN"
