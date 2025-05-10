@@ -54,14 +54,15 @@ jobs:
           echo "📂 Final metrics directory contents:"
           ls -lh metrics/
 
-      - name: 📤 Commit and Push Metrics as Bot
+      - name: 📦 Generate Badge-Friendly JSON
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A metrics/
-          if ! git diff --cached --quiet; then
-            git commit -m "📊 Update code metrics [skip ci]"
-            git push origin HEAD:main
-          else
-            echo "ℹ️ No metric changes to commit."
-          fi
+          LOC=$(jq '.Java.code' metrics/cloc.json)
+          CCN=$(awk '/^Total nloc/ {getline; $1=$1; print $3}' metrics/lizard.txt)
+
+          echo "📏 LOC = $LOC"
+          echo "🧠 Avg CCN = $CCN"
+
+          echo "{\"loc\": $LOC, \"avg_ccn\": $CCN}" > metrics/summary.json
+
+          echo "📂 Final metrics directory contents:"
+          ls -lh metrics/
