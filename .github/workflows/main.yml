@@ -10,22 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 🧾 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install cloc
+      - name: 🛠 Install cloc
         run: sudo apt-get install -y cloc
 
-      - name: Install Lizard
+      - name: 🧪 Install Lizard
         run: pip install lizard
 
-      - name: Generate Code Metrics
+      - name: ✅ Verify Source Path
+        run: test -d ./src/main/java || (echo "❌ Source path not found!" && exit 1)
+
+      - name: 📊 Generate Code Metrics
         run: |
           mkdir -p metrics
-          cloc ./src --exclude-dir=target,test --json > metrics/cloc.json
-          lizard ./src > metrics/lizard.txt
+          echo "🧮 Running cloc..."
+          cloc ./src/main/java --exclude-dir=target,test --json > metrics/cloc.json || true
+          echo "🧠 Running lizard..."
+          lizard ./src/main/java > metrics/lizard.txt || true
 
-      - name: Upload metrics artifact
+      - name: 📦 Upload Code Metrics
         uses: actions/upload-artifact@v4
         with:
           name: code-metrics
