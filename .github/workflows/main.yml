@@ -5,13 +5,18 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write  # needed for pushing code
+
 jobs:
   metrics:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧾 Checkout Repository
-        uses: actions/checkout@v3
+      - name: 🧾 Checkout using PAT (v4)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
 
       - name: 🛠 Install cloc
         run: sudo apt-get install -y cloc
@@ -31,15 +36,9 @@ jobs:
           lizard ./src/main/java > metrics/lizard.txt || true
 
       - name: 📤 Commit and Push Metrics
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git config --global user.name "JakeTurner616"
-          git config --global user.email "your_email@example.com"
-
-          # override remote origin to use PAT
-          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
-
+          git config user.name "JakeTurner616"
+          git config user.email "your_email@example.com"
           git add metrics/cloc.json metrics/lizard.txt
           git diff --cached --quiet || git commit -m "📊 Update code metrics"
           git push origin HEAD:main
