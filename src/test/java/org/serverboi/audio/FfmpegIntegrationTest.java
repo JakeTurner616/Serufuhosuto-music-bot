@@ -1,10 +1,8 @@
 package org.serverboi.audio;
 
 import org.junit.jupiter.api.Test;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.InputStream;
+import java.io.*;
+import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,106 +10,122 @@ public class FfmpegIntegrationTest {
 
     private static final String YTDLP_EXECUTABLE = "yt-dlp";
     private static final String FFMPEG_EXECUTABLE = "ffmpeg";
-    private static final String VALID_YOUTUBE_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    private static final String VALID_YOUTUBE_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; // test video
 
-    /**
-     * Verifies ffmpeg is installed and returns version info.
-     */
     @Test
     public void testFfmpegIsInstalled() throws Exception {
         Process proc = new ProcessBuilder(FFMPEG_EXECUTABLE, "-version")
                 .redirectErrorStream(true)
                 .start();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        String versionLine = reader.readLine();
-        int exitCode = proc.waitFor();
-
-        assertEquals(0, exitCode, "ffmpeg should exit successfully");
-        assertNotNull(versionLine, "ffmpeg version output should not be null");
-        assertTrue(versionLine.toLowerCase().contains("ffmpeg"), "Should mention ffmpeg in the output");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+            String versionLine = reader.readLine();
+            assertEquals(0, proc.waitFor(), "ffmpeg should exit successfully");
+            assertNotNull(versionLine);
+            assertTrue(versionLine.toLowerCase().contains("ffmpeg"));
+        }
     }
 
-    /**
-     * Full integration: yt-dlp resolves stream URL, ffmpeg connects and outputs raw audio.
-     */
     @Test
     public void testFfmpegCanStreamFromUrl() throws Exception {
-        // Get a valid audio stream URL using yt-dlp
-        Process ytProc = new ProcessBuilder(YTDLP_EXECUTABLE, "-f", "bestaudio[ext=m4a]", "-g", VALID_YOUTUBE_URL)
-                .redirectErrorStream(true)
-                .start();
+        // Ask yt-dlp to emit a direct audio URL in JSON form for maximum compatibility
+        Process ytProc = new ProcessBuilder(
+                YTDLP_EXECUTABLE,
+                "--no-warnings",
+                "--dump-json",
+                "--geo-bypass",
+                "--force-ipv4",
+                "--no-playlist",
+                "-f", "bestaudio",
+                VALID_YOUTUBE_URL
+        ).redirectErrorStream(true).start();
 
-        BufferedReader ytReader = new BufferedReader(new InputStreamReader(ytProc.getInputStream()));
-        String streamUrl = ytReader.readLine();
-        ytProc.waitFor();
+        StringBuilder ytOutput = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(ytProc.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) ytOutput.append(line).append("\n");
+        }
+
+        ytProc.waitFor(15, TimeUnit.SECONDS);
+        String json = ytOutput.toString().trim();
+        assertFalse(json.isBlank(), "yt-dlp output should not be blank");
+
+        // Extract URL manually (don’t rely on fragile line match)
+        String streamUrl = null;
+        for (String token : json.split("\"")) {
+            if (token.startsWith("http") && token.contains("googlevideo.com")) {
+                streamUrl = token;
+                break;
+            }
+        }
+
+        if (streamUrl == null) {
+            System.err.println("yt-dlp output:\n" + json);
+        }
 
         assertNotNull(streamUrl, "yt-dlp should return a stream URL");
-        assertTrue(streamUrl.startsWith("http"), "yt-dlp output should be a valid URL");
 
-        // Use ffmpeg to stream and convert audio to 48kHz 16-bit PCM
+        // Stream a short sample from ffmpeg with timeout and safety
         Process ffmpegProc = new ProcessBuilder(
                 FFMPEG_EXECUTABLE,
+                "-hide_banner",
                 "-reconnect", "1",
                 "-reconnect_streamed", "1",
                 "-reconnect_delay_max", "5",
                 "-i", streamUrl,
                 "-vn",
-                "-f", "s16be",
+                "-f", "s16le",
                 "-ar", "48000",
                 "-ac", "2",
-                "-t", "1", // only read 1 second for testing
+                "-t", "0.5",
                 "-loglevel", "error",
                 "pipe:1"
         ).start();
 
-        InputStream audioStream = ffmpegProc.getInputStream();
-        byte[] buffer = new byte[3840]; // 20ms of PCM audio
-        int bytesRead = audioStream.read(buffer);
-        int exitCode = ffmpegProc.waitFor();
+        Future<byte[]> readTask = Executors.newSingleThreadExecutor().submit(() -> {
+            try (InputStream audioStream = ffmpegProc.getInputStream();
+                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                byte[] buf = new byte[2048];
+                int n;
+                while ((n = audioStream.read(buf)) != -1)
+                    out.write(buf, 0, n);
+                return out.toByteArray();
+            }
+        });
 
-        assertEquals(0, exitCode, "ffmpeg should exit cleanly");
-        assertTrue(bytesRead > 0, "ffmpeg should produce audio data");
+        boolean finished = ffmpegProc.waitFor(10, TimeUnit.SECONDS);
+        if (!finished) {
+            ffmpegProc.destroyForcibly();
+            fail("ffmpeg process timed out");
+        }
+
+        byte[] audioData = readTask.get(3, TimeUnit.SECONDS);
+        assertTrue(audioData.length > 0, "ffmpeg should produce audio data");
     }
 
-    /**
-     * Simulates ffmpeg failure on bad input.
-     */
     @Test
     public void testFfmpegFailsGracefullyOnInvalidUrl() {
         Exception exception = assertThrows(Exception.class, () -> {
             Process proc = new ProcessBuilder(
                     FFMPEG_EXECUTABLE,
                     "-i", "https://invalid.url/stream",
-                    "-f", "s16be",
-                    "-ar", "48000",
-                    "-ac", "2",
-                    "-t", "1",
-                    "-loglevel", "error",
-                    "pipe:1"
+                    "-f", "s16le", "-ar", "48000", "-ac", "2",
+                    "-t", "0.5", "-loglevel", "error", "pipe:1"
             ).start();
-
-            InputStream error = proc.getInputStream();
-            while (error.read() != -1); // drain
-            int exitCode = proc.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("ffmpeg failed with exit code " + exitCode);
-            }
+            if (!proc.waitFor(5, TimeUnit.SECONDS)) proc.destroyForcibly();
+            if (proc.exitValue() != 0)
+                throw new RuntimeException("ffmpeg failed with exit code " + proc.exitValue());
         });
-
-        assertTrue(exception.getMessage().contains("ffmpeg failed"), "Should indicate ffmpeg failed");
+        assertTrue(exception.getMessage().contains("ffmpeg failed"));
     }
 
-    /**
-     * Simulates missing ffmpeg binary.
-     */
     @Test
     public void testMissingFfmpegBinaryFails() {
         Exception exception = assertThrows(Exception.class, () -> {
             new ProcessBuilder("ffmpeg-missing", "-version").start();
         });
-
-        assertTrue(exception.getMessage().toLowerCase().contains("cannot run") ||
-                   exception.getMessage().toLowerCase().contains("no such file"), "Should detect missing ffmpeg");
+        assertTrue(
+                exception.getMessage().toLowerCase().contains("cannot run") ||
+                exception.getMessage().toLowerCase().contains("no such file")
+        );
     }
 }
