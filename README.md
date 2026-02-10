@@ -70,7 +70,7 @@ pip install yt-dlp
     "token": "YOUR_DISCORD_BOT_TOKEN",
     "prefix": ".",
     "ffmpegPath": "ffmpeg",
-    "ytQuality": "bestaudio[ext=m4a]"
+    "ytQuality": "bestaudio[ext=m4a]/bestaudio"
 }
 ```
 

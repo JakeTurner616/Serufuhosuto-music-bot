@@ -19,7 +19,11 @@ public class BotLauncher {
     public static void main(String[] args) throws Exception {
         config = loadConfig();
 
-        verifyFfmpegAvailable(); // early runtime check
+        verifyBinaryAvailable(config.optString("ffmpegPath", "ffmpeg"), "-version", "FFmpeg",
+                "👉 On Windows: choco install ffmpeg -y");
+
+        verifyBinaryAvailable(config.optString("ytDlpPath", "yt-dlp"), "--version", "yt-dlp",
+                "👉 Install: python -m pip install -U yt-dlp");
 
         JDABuilder.createDefault(
                 config.getString("token"),
@@ -43,8 +47,8 @@ public class BotLauncher {
     }
 
     private static JSONObject loadConfig() {
-        Path externalPath = Paths.get("config.json"); // Same folder as JAR
-        Path devPath = Paths.get("src/main/resources/config.json"); // IDE/dev fallback
+        Path externalPath = Paths.get("config.json");
+        Path devPath = Paths.get("src/main/resources/config.json");
 
         try {
             if (Files.exists(externalPath)) {
@@ -62,22 +66,22 @@ public class BotLauncher {
             System.exit(1);
         }
 
-        return null; // Unreachable, but required by compiler
+        return null;
     }
 
-    private static void verifyFfmpegAvailable() {
+    private static void verifyBinaryAvailable(String exe, String arg, String name, String help) {
         try {
-            Process process = new ProcessBuilder(config.getString("ffmpegPath"), "-version")
+            Process process = new ProcessBuilder(exe, arg)
                     .redirectErrorStream(true)
                     .start();
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                System.err.println("❌ FFmpeg is installed but failed to run.");
+                System.err.println("❌ " + name + " is installed but failed to run (" + exe + ").");
                 System.exit(1);
             }
         } catch (Exception e) {
-            System.err.println("❌ FFmpeg is not available. Please install it or add it to your system PATH.");
-            System.err.println("👉 On Windows: choco install ffmpeg -y");
+            System.err.println("❌ " + name + " is not available (" + exe + ").");
+            System.err.println(help);
             System.exit(1);
         }
     }

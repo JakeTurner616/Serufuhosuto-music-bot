@@ -1,3 +1,4 @@
+// src/main/java/org/serverboi/commands/StopCommand.java
 package org.serverboi.commands;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,10 +14,17 @@ public class StopCommand extends ListenerAdapter {
         String content = event.getMessage().getContentRaw();
         String prefix = BotLauncher.config.getString("prefix");
 
-        if (content.equalsIgnoreCase(prefix + "stop")) {
-            AudioSessionManager.stop(event.getGuild());
-            event.getGuild().getAudioManager().setSendingHandler(null);
-            event.getChannel().sendMessage("🛑 Playback stopped.").queue();
-        }
+        if (!content.equalsIgnoreCase(prefix + "stop")) return;
+
+        var guild = event.getGuild();
+        var audioManager = guild.getAudioManager();
+
+        // Stop current stream (kills ffmpeg + handler) and clear any queued tracks
+        AudioSessionManager.stop(guild);
+        AudioSessionManager.clearQueue(guild);
+
+        audioManager.setSendingHandler(null);
+
+        event.getChannel().sendMessage("🛑 Playback stopped and queue cleared.").queue();
     }
 }

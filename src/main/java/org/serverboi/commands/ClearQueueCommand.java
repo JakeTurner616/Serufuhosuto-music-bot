@@ -1,3 +1,4 @@
+// src/main/java/org/serverboi/commands/ClearQueueCommand.java
 package org.serverboi.commands;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,15 +14,17 @@ public class ClearQueueCommand extends ListenerAdapter {
         String content = event.getMessage().getContentRaw();
         String prefix = BotLauncher.config.getString("prefix");
 
-        if (content.equalsIgnoreCase(prefix + "clear")) {
-            boolean hadQueue = AudioSessionManager.hasQueue(event.getGuild());
-            AudioSessionManager.clearQueue(event.getGuild());
+        if (!content.equalsIgnoreCase(prefix + "clear")) return;
 
-            if (hadQueue) {
-                event.getChannel().sendMessage("🧹 Cleared the queue.").queue();
-            } else {
-                event.getChannel().sendMessage("ℹ️ The queue was already empty.").queue();
-            }
+        var guild = event.getGuild();
+
+        boolean hadQueue = AudioSessionManager.hasQueue(guild);
+        AudioSessionManager.clearQueue(guild);
+
+        if (hadQueue) {
+            event.getChannel().sendMessage("🧹 Cleared the queue.").queue();
+        } else {
+            event.getChannel().sendMessage("ℹ️ The queue was already empty.").queue();
         }
     }
 }

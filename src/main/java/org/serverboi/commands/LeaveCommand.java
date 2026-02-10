@@ -1,3 +1,4 @@
+// src/main/java/org/serverboi/commands/LeaveCommand.java
 package org.serverboi.commands;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,17 +14,19 @@ public class LeaveCommand extends ListenerAdapter {
         String content = event.getMessage().getContentRaw();
         String prefix = BotLauncher.config.getString("prefix");
 
-        if (content.equalsIgnoreCase(prefix + "leave")) {
-            var audioManager = event.getGuild().getAudioManager();
+        if (!content.equalsIgnoreCase(prefix + "leave")) return;
 
-            // Stop any active stream
-            AudioSessionManager.stop(event.getGuild());
+        var guild = event.getGuild();
+        var audioManager = guild.getAudioManager();
 
-            // Remove the audio handler and disconnect
-            audioManager.setSendingHandler(null);
-            audioManager.closeAudioConnection();
+        // Stop stream + clear queue
+        AudioSessionManager.stop(guild);
+        AudioSessionManager.clearQueue(guild);
 
-            event.getChannel().sendMessage("👋 Left the voice channel.").queue();
-        }
+        // Remove handler and disconnect
+        audioManager.setSendingHandler(null);
+        audioManager.closeAudioConnection();
+
+        event.getChannel().sendMessage("👋 Left the voice channel.").queue();
     }
 }
