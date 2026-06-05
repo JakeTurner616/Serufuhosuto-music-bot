@@ -1,0 +1,12 @@
+.git
+.idea
+.vscode
+target
+tmp
+tools
+*.log
+*.jar
+config.json
+dependency-reduced-pom.xml
+serialized_project.txt
+serialize_project.sh

@@ -47,6 +47,7 @@
 
 - Java 25+ installed and available as `java`
 - FFmpeg installed and available as `ffmpeg`
+- Linux hosts need glibc 2.38+ and libstdc++ with GLIBCXX_3.4.32+ for the JDAVE native voice library
 - A Discord bot token
 - Message Content Intent enabled for the bot in the Discord Developer Portal
 
@@ -151,6 +152,8 @@ java -jar Serufuhosuto-music-bot-1.6-shaded.jar
 
 For Debian or Ubuntu:
 
+JDAVE 0.1.8's Linux native library requires a newer userspace than Ubuntu 22.04/Linux Mint 21. Use Ubuntu 24.04+, Debian 13+, or another distro with glibc 2.38+ and GLIBCXX_3.4.32+.
+
 ```bash
 sudo apt update
 sudo apt install -y git maven ffmpeg curl wget gpg
@@ -159,6 +162,35 @@ echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.n
 sudo apt update
 sudo apt install -y temurin-25-jdk
 java --version
+```
+
+Linux Mint 21 / Ubuntu 22.04 container workaround:
+
+If the host is Linux Mint 21 or Ubuntu 22.04, run the bot in the provided Ubuntu Noble-based container instead of upgrading host `glibc`.
+
+```bash
+cd /opt/serufuhosuto-music-bot
+docker compose build
+docker compose up
+```
+
+To run it in the background:
+
+```bash
+docker compose up -d
+docker compose logs -f
+```
+
+Make sure `config.json` exists in the project root before starting the container. The Linux config should use:
+
+```json
+{
+  "token": "YOUR_DISCORD_BOT_TOKEN",
+  "prefix": ".",
+  "ffmpegPath": "ffmpeg",
+  "ytDlpPath": "tools/yt-dlp",
+  "ytQuality": "bestaudio[ext=webm]/bestaudio/bestaudio[ext=m4a]"
+}
 ```
 
 Clone and enter the repo:
@@ -181,7 +213,8 @@ Create `config.json` using the Linux example above, then build and run:
 
 ```bash
 mvn clean package
-java -jar target/Serufuhosuto-music-bot-1.6-shaded.jar
+mkdir -p tmp
+java -Djava.io.tmpdir="$PWD/tmp" -jar target/Serufuhosuto-music-bot-1.6.jar
 ```
 
 Optional systemd service:
@@ -197,7 +230,8 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/home/YOUR_USER/serufuhosuto-music-bot
-ExecStart=/usr/bin/java -jar target/Serufuhosuto-music-bot-1.6-shaded.jar
+ExecStartPre=/usr/bin/mkdir -p /home/YOUR_USER/serufuhosuto-music-bot/tmp
+ExecStart=/usr/bin/java -Djava.io.tmpdir=/home/YOUR_USER/serufuhosuto-music-bot/tmp -jar target/Serufuhosuto-music-bot-1.6.jar
 Restart=always
 RestartSec=10
 User=YOUR_USER
@@ -228,7 +262,7 @@ mvn clean package
 The shaded jar is written to:
 
 ```text
-target/Serufuhosuto-music-bot-1.6-shaded.jar
+target/Serufuhosuto-music-bot-1.6.jar
 ```
 
 The shaded jar includes common JDAVE native artifacts for Windows x64, Linux x64, Linux ARM64, and macOS.

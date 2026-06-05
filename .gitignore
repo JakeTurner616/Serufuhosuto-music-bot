@@ -28,6 +28,8 @@ config.json
 
 # Local runtime helper downloaded by setup docs
 /tools/yt-dlp.exe
+/tools/yt-dlp
+/tmp/
 
 # Shell scripts (optional — untrack if generated or private)
 serialize_project.sh

@@ -1,0 +1,9 @@
+services:
+  serufuhosuto:
+    build: .
+    image: serufuhosuto-music-bot:local
+    container_name: serufuhosuto
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json:ro
+      - ./tmp:/app/tmp
