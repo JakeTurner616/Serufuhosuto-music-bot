@@ -2,55 +2,87 @@ package org.serverboi.audio;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public final class FfmpegPcm {
     private FfmpegPcm() {}
 
     public static Process start(String ffmpegPath, String streamUrl, String tag) throws Exception {
-        Process p = new ProcessBuilder(
-                ffmpegPath,
-                "-hide_banner",
-                "-nostdin",
+        return start(ffmpegPath, streamUrl, Map.of(), tag);
+    }
 
-                // reconnect helps with googlevideo transient resets
-                "-reconnect", "1",
-                "-reconnect_streamed", "1",
-                "-reconnect_delay_max", "5",
+    public static Process start(String ffmpegPath, String streamUrl, Map<String, String> headers, String tag) throws Exception {
+        List<String> args = new ArrayList<>();
+        args.add(ffmpegPath);
+        args.add("-hide_banner");
+        args.add("-nostdin");
 
-                "-i", streamUrl,
-                "-vn",
+        // Reconnect helps with googlevideo transient resets.
+        args.add("-reconnect");
+        args.add("1");
+        args.add("-reconnect_streamed");
+        args.add("1");
+        args.add("-reconnect_delay_max");
+        args.add("5");
 
-                // ✅ JDA raw PCM expects little-endian
-                "-f", "s16le",
-                "-ar", "48000",
-                "-ac", "2",
+        if (headers != null && !headers.isEmpty()) {
+            String userAgent = headers.get("User-Agent");
+            if (userAgent != null && !userAgent.isBlank()) {
+                args.add("-user_agent");
+                args.add(userAgent);
+            }
 
-                // keep logs readable; change to "warning" if you want more
-                "-loglevel", "error",
-                "pipe:1"
-        ).start();
+            StringBuilder headerText = new StringBuilder();
+            headers.forEach((name, value) -> {
+                if (name != null && value != null && !name.isBlank() && !value.isBlank()) {
+                    headerText.append(name).append(": ").append(value).append("\r\n");
+                }
+            });
+            if (!headerText.isEmpty()) {
+                args.add("-headers");
+                args.add(headerText.toString());
+            }
+        }
 
-        // ✅ Drain stderr so FFmpeg can't block AND so you can see why it ended
-        Thread t = new Thread(() -> {
-            try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+        args.add("-i");
+        args.add(streamUrl);
+        args.add("-vn");
+
+        // JDA AudioSendHandler expects signed 16-bit stereo 48kHz big-endian PCM.
+        args.add("-f");
+        args.add("s16be");
+        args.add("-ar");
+        args.add("48000");
+        args.add("-ac");
+        args.add("2");
+
+        args.add("-loglevel");
+        args.add("error");
+        args.add("pipe:1");
+
+        Process p = new ProcessBuilder(args).start();
+
+        Thread stderr = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
                 String line;
-                while ((line = r.readLine()) != null) {
+                while ((line = reader.readLine()) != null) {
                     System.err.println("[FFMPEG " + tag + "] " + line);
                 }
             } catch (Exception ignored) {}
         }, "FFmpeg-stderr-" + tag);
-        t.setDaemon(true);
-        t.start();
+        stderr.setDaemon(true);
+        stderr.start();
 
-        // Log exit code when it finishes (super useful for the “ended immediately” case)
-        Thread w = new Thread(() -> {
+        Thread waiter = new Thread(() -> {
             try {
                 int code = p.waitFor();
                 System.out.println("[FFMPEG " + tag + "] exit=" + code);
             } catch (InterruptedException ignored) {}
         }, "FFmpeg-wait-" + tag);
-        w.setDaemon(true);
-        w.start();
+        waiter.setDaemon(true);
+        waiter.start();
 
         return p;
     }

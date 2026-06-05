@@ -4,19 +4,29 @@ package org.serverboi.commands;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.audio.hooks.ConnectionListener;
+import net.dv8tion.jda.api.audio.hooks.ConnectionStatus;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.serverboi.BotLauncher;
 import org.serverboi.audio.AudioSessionManager;
+import org.serverboi.audio.FfmpegPcm;
 import org.serverboi.audio.StreamSendHandler;
+import org.json.JSONObject;
+
+import net.dv8tion.jda.api.Permission;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlayCommand extends ListenerAdapter {
+    private record StreamInfo(String url, Map<String, String> headers) {}
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        if (!event.isFromGuild()) return;
         if (event.getAuthor().isBot()) return;
 
         String content = event.getMessage().getContentRaw();
@@ -64,6 +74,7 @@ public class PlayCommand extends ListenerAdapter {
     ) {
         try {
             AudioManager audioManager = guild.getAudioManager();
+            configureVoiceConnectionTracking(audioManager, guild);
 
             // Ensure voice connection
             if (!audioManager.isConnected()) {
@@ -71,6 +82,22 @@ public class PlayCommand extends ListenerAdapter {
                     textChannel.sendMessage("❌ You must be in a voice channel.").queue();
                     return;
                 }
+
+                // Check bot permissions to connect/speak
+                boolean hasPerms = guild.getSelfMember().hasPermission(joinChannel.asVoiceChannel(), Permission.VOICE_CONNECT, Permission.VOICE_SPEAK);
+                if (!hasPerms) {
+                    textChannel.sendMessage("❌ I don't have permission to join or speak in that voice channel. Please grant Connect & Speak permissions to the bot.").queue();
+                    return;
+                }
+
+                // Respect join cooldowns to avoid tight reconnect loops when the voice server
+                // rejects connections (E2EE/DAVE required, auth/session problems, etc.).
+                if (!AudioSessionManager.canAttemptJoin(guild)) {
+                    textChannel.sendMessage("❌ The bot is currently unable to join voice in this server (recent failures). Please try again in a bit or check server voice settings.").queue();
+                    return;
+                }
+
+                audioManager.setConnectTimeout(30_000);
                 audioManager.openAudioConnection(joinChannel);
             }
 
@@ -78,30 +105,13 @@ public class PlayCommand extends ListenerAdapter {
             String ffmpegBin = BotLauncher.config.optString("ffmpegPath", "ffmpeg");
             String quality = BotLauncher.config.getString("ytQuality");
 
-            String streamUrl = fetchStreamUrl(ytDlp, quality, req.query());
-            if (streamUrl == null || streamUrl.isEmpty()) {
+            StreamInfo streamInfo = fetchStreamInfo(ytDlp, quality, req.query());
+            if (streamInfo == null || streamInfo.url().isEmpty()) {
                 textChannel.sendMessage("❌ Failed to get a valid audio stream URL from yt-dlp.").queue();
                 return;
             }
 
-            // IMPORTANT: JDA expects 48kHz stereo 16-bit BIG-ENDIAN PCM (s16be)
-            Process ffmpeg = new ProcessBuilder(
-                    ffmpegBin,
-                    "-hide_banner",
-                    "-reconnect", "1",
-                    "-reconnect_streamed", "1",
-                    "-reconnect_delay_max", "5",
-                    "-i", streamUrl,
-                    "-vn",
-                    "-f", "s16be",
-                    "-ar", "48000",
-                    "-ac", "2",
-                    "-loglevel", "error",
-                    "pipe:1"
-            ).start();
-
-            // Drain stderr so ffmpeg can't block
-            drainAsync(ffmpeg.getErrorStream(), "FFmpeg-stderr");
+            Process ffmpeg = FfmpegPcm.start(ffmpegBin, streamInfo.url(), streamInfo.headers(), "play-" + guild.getId());
 
             Runnable onEnd = () -> {
                 AudioSessionManager.stop(guild);
@@ -129,11 +139,37 @@ public class PlayCommand extends ListenerAdapter {
         }
     }
 
+    private void configureVoiceConnectionTracking(AudioManager audioManager, net.dv8tion.jda.api.entities.Guild guild) {
+        if (audioManager.getConnectionListener() != null) {
+            return;
+        }
+
+        audioManager.setConnectionListener(new ConnectionListener() {
+            @Override
+            public void onStatusChange(ConnectionStatus status) {
+                System.out.println("[VOICE " + guild.getId() + "] " + status);
+
+                if (status == ConnectionStatus.CONNECTED) {
+                    AudioSessionManager.clearJoinCooldown(guild);
+                    return;
+                }
+
+                if (status == ConnectionStatus.ERROR_CONNECTION_TIMEOUT
+                        || status == ConnectionStatus.ERROR_UNSUPPORTED_ENCRYPTION_MODES
+                        || status == ConnectionStatus.ERROR_WEBSOCKET_UNABLE_TO_CONNECT
+                        || status == ConnectionStatus.ERROR_UDP_UNABLE_TO_CONNECT
+                        || status == ConnectionStatus.DISCONNECTED_AUTHENTICATION_FAILURE) {
+                    AudioSessionManager.registerFailedJoin(guild);
+                }
+            }
+        });
+    }
+
     /**
-     * Fetch direct media URL from yt-dlp.
+     * Fetch direct media URL and request headers from yt-dlp.
      * IMPORTANT: Do NOT merge stderr into stdout, otherwise warnings can pollute parsing.
      */
-    private String fetchStreamUrl(String ytDlp, String quality, String query) {
+    private StreamInfo fetchStreamInfo(String ytDlp, String quality, String query) {
         try {
             Process yt = new ProcessBuilder(
                     ytDlp,
@@ -141,24 +177,39 @@ public class PlayCommand extends ListenerAdapter {
                     "--quiet",
                     "--no-playlist",
                     "-f", quality,
-                    "-g", query
+                    "--print", "%(url)s",
+                    "--print", "%(http_headers)j",
+                    query
             ).start();
 
             // Drain stderr so yt-dlp can't block, but don't mix it into stdout
             drainAsync(yt.getErrorStream(), "yt-dlp-stderr");
 
             BufferedReader out = new BufferedReader(new InputStreamReader(yt.getInputStream()));
+            String streamUrl = null;
+            Map<String, String> headers = new HashMap<>();
             String line;
             while ((line = out.readLine()) != null) {
                 line = line.trim();
-                if (line.startsWith("http")) {
-                    yt.waitFor();
-                    return line;
+                if (line.startsWith("http") && streamUrl == null) {
+                    streamUrl = line;
+                } else if (line.startsWith("{") && line.endsWith("}")) {
+                    JSONObject json = new JSONObject(line);
+                    for (String key : json.keySet()) {
+                        String value = json.optString(key, "");
+                        if (!value.isBlank()) {
+                            headers.put(key, value);
+                        }
+                    }
                 }
             }
 
             yt.waitFor();
-            return null;
+            if (streamUrl == null || streamUrl.isBlank()) {
+                return null;
+            }
+
+            return new StreamInfo(streamUrl, headers);
 
         } catch (Exception e) {
             System.err.println("[ERROR] yt-dlp failed: " + e.getMessage());

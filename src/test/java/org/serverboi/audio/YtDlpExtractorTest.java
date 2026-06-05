@@ -3,6 +3,8 @@ package org.serverboi.audio;
 import org.junit.jupiter.api.Test;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +13,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class YtDlpExtractorTest {
 
     private static final String VALID_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-    private static final String YTDLP_EXECUTABLE = "yt-dlp";
+    private static final String YTDLP_EXECUTABLE = resolveYtDlpExecutable();
+
+    private static String resolveYtDlpExecutable() {
+        Path local = Path.of("tools", "yt-dlp.exe");
+        return Files.exists(local) ? local.toString() : "yt-dlp";
+    }
 
     @Test
     public void testYtDlpIsInstalled() throws Exception {
@@ -31,6 +38,8 @@ public class YtDlpExtractorTest {
     public void testValidUrlReturnsStreamUrl() throws Exception {
         Process proc = new ProcessBuilder(
                 YTDLP_EXECUTABLE,
+                "--no-warnings",
+                "--quiet",
                 "-f", "bestaudio/best",
                 "--get-url",
                 VALID_URL
@@ -50,8 +59,6 @@ public class YtDlpExtractorTest {
                 .findFirst()
                 .orElse(null);
 
-        System.out.println("yt-dlp output:\n" + String.join("\n", lines));
-
         assertEquals(0, exitCode, "yt-dlp should succeed");
         assertNotNull(streamUrl, "yt-dlp should return a stream URL");
         assertTrue(streamUrl.startsWith("http"), "yt-dlp output should be a valid URL");
@@ -61,6 +68,8 @@ public class YtDlpExtractorTest {
     public void testTitleExtractionFromSearch() throws Exception {
         Process proc = new ProcessBuilder(
                 YTDLP_EXECUTABLE,
+                "--no-warnings",
+                "--quiet",
                 "--no-playlist",
                 "--print", "%(title)s",
                 "ytsearch1:rick astley never gonna give you up"
@@ -69,8 +78,6 @@ public class YtDlpExtractorTest {
         BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String title = reader.readLine();
         int exitCode = proc.waitFor();
-
-        System.out.println("yt-dlp title: " + title);
 
         assertEquals(0, exitCode, "yt-dlp title extraction should succeed");
         assertNotNull(title, "yt-dlp should return a title");
@@ -82,6 +89,8 @@ public class YtDlpExtractorTest {
         Exception exception = assertThrows(Exception.class, () -> {
             Process proc = new ProcessBuilder(
                     YTDLP_EXECUTABLE,
+                    "--no-warnings",
+                    "--quiet",
                     "-f", "bestaudio/best",
                     "--get-url",
                     "https://youtube.com/watch?v=invalid123"

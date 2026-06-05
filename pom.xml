@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.serverboi</groupId>
     <artifactId>Serufuhosuto-music-bot</artifactId>
-    <version>1.5</version>
+    <version>1.6</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -16,7 +16,32 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>6.0.0-rc.2</version>
+            <version>6.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-api</artifactId>
+            <version>0.1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-native-win-x86-64</artifactId>
+            <version>0.1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-native-linux-x86-64</artifactId>
+            <version>0.1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-native-linux-aarch64</artifactId>
+            <version>0.1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-native-darwin</artifactId>
+            <version>0.1.8</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -37,6 +62,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>lavalink-snapshots</id>
+            <url>https://maven.lavalink.dev/snapshots</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -62,6 +94,9 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.serverboi.BotLauncher</mainClass>
+                                    <manifestEntries>
+                                        <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                         </configuration>

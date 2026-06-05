@@ -11,13 +11,13 @@ import java.util.concurrent.BlockingQueue;
 
 /**
  * Reliable StreamSendHandler — prevents audio stalls and Discord rate-limit bucket buildup.
- * Buffers ~0.5s of raw PCM (s16le, 48kHz, stereo).
+ * Buffers ~0.5s of raw PCM (s16be, 48kHz, stereo).
  */
 public class StreamSendHandler implements AudioSendHandler {
 
     private static final int SAMPLE_RATE = 48000;
     private static final int CHANNELS = 2;
-    private static final int BYTES_PER_SAMPLE = 2; // s16le
+    private static final int BYTES_PER_SAMPLE = 2; // s16be
     private static final int FRAME_MS = 20;
 
     private static final int SAMPLES_PER_CH_PER_FRAME = SAMPLE_RATE * FRAME_MS / 1000; // 960
@@ -33,7 +33,7 @@ public class StreamSendHandler implements AudioSendHandler {
 
     public StreamSendHandler(InputStream ffmpegStdout, Runnable onEnd) {
         System.out.println("[DEBUG] StreamSendHandler PCM " + SAMPLE_RATE + "Hz " + CHANNELS +
-                "ch s16le; frame=" + FRAME_SIZE + " bytes; bufferFrames=" + BUFFER_FRAMES);
+                "ch s16be; frame=" + FRAME_SIZE + " bytes; bufferFrames=" + BUFFER_FRAMES);
 
         Thread feeder = new Thread(() -> {
             try {

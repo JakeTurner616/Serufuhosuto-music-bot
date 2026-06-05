@@ -2,7 +2,10 @@ package org.serverboi;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.audio.AudioModuleConfig;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import club.minnced.discord.jdave.interop.JDaveSessionFactory;
 import org.json.JSONObject;
 import org.serverboi.commands.*;
 import org.serverboi.listeners.VoiceStateListener;
@@ -25,6 +28,9 @@ public class BotLauncher {
         verifyBinaryAvailable(config.optString("ytDlpPath", "yt-dlp"), "--version", "yt-dlp",
                 "👉 Install: python -m pip install -U yt-dlp");
 
+        AudioModuleConfig audioModuleConfig = new AudioModuleConfig()
+                .withDaveSessionFactory(new JDaveSessionFactory());
+
         JDABuilder.createDefault(
                 config.getString("token"),
                 EnumSet.of(
@@ -33,6 +39,8 @@ public class BotLauncher {
                         GatewayIntent.MESSAGE_CONTENT
                 )
         )
+        .setAudioModuleConfig(audioModuleConfig)
+        .enableCache(CacheFlag.VOICE_STATE)
         .addEventListeners(
             new PlayCommand(),
             new StopCommand(),

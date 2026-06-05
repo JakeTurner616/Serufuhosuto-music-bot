@@ -2,6 +2,6 @@
     "token": "your_token_here",
     "prefix": ".",
     "ffmpegPath": "ffmpeg",
-    "ytQuality": "bestaudio[ext=m4a]"
+    "ytDlpPath": "tools\\yt-dlp.exe",
+    "ytQuality": "bestaudio[ext=webm]/bestaudio/bestaudio[ext=m4a]"
   }
-  
