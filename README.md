@@ -15,7 +15,7 @@
   [![Build](https://img.shields.io/github/actions/workflow/status/JakeTurner616/Serufuhosuto-music-bot/manual-release.yml?label=Build&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/actions/workflows/manual-release.yml "Build Status")
   [![Release](https://img.shields.io/github/v/release/JakeTurner616/Serufuhosuto-music-bot?label=Release&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/releases "Latest Release")
   [![yt-dlp CI](https://img.shields.io/github/actions/workflow/status/yt-dlp/yt-dlp/core.yml?branch=master&label=yt-dlp%20Build&style=for-the-badge)](https://github.com/yt-dlp/yt-dlp/actions "yt-dlp CI")
-  [![yt-dlp Release](https://img.shields.io/github/v/release/yt-dlp/yt-dlp?color=brightgreen&label=yt-dlp%20latest&style=for-the-badge)](https://github.com/yt-dlp/yt-dlp/releases "yt-dlp Latest")
+  [![yt-dlp Release](https://img.shields.io/pypi/v/yt-dlp?color=brightgreen&label=yt-dlp%20latest&style=for-the-badge)](https://pypi.org/project/yt-dlp/ "yt-dlp Latest")
   </p>
 </div>
 
@@ -142,7 +142,7 @@ Download the latest `.jar` file from the releases page:
 Put `config.json` next to the jar, then run:
 
 ```bash
-java -jar Serufuhosuto-music-bot-1.6.jar
+java -jar Serufuhosuto-music-bot-1.6-shaded.jar
 ```
 
 ---
@@ -176,7 +176,7 @@ Create `config.json` using the Linux example above, then build and run:
 
 ```bash
 mvn clean package
-java -jar target/Serufuhosuto-music-bot-1.6.jar
+java -jar target/Serufuhosuto-music-bot-1.6-shaded.jar
 ```
 
 Optional systemd service:
@@ -192,7 +192,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/home/YOUR_USER/serufuhosuto-music-bot
-ExecStart=/usr/bin/java -jar target/Serufuhosuto-music-bot-1.6.jar
+ExecStart=/usr/bin/java -jar target/Serufuhosuto-music-bot-1.6-shaded.jar
 Restart=always
 RestartSec=10
 User=YOUR_USER
@@ -223,7 +223,7 @@ mvn clean package
 The shaded jar is written to:
 
 ```text
-target/Serufuhosuto-music-bot-1.6.jar
+target/Serufuhosuto-music-bot-1.6-shaded.jar
 ```
 
 The shaded jar includes common JDAVE native artifacts for Windows x64, Linux x64, Linux ARM64, and macOS.
