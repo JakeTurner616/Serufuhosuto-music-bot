@@ -174,6 +174,12 @@ docker compose build
 docker compose up
 ```
 
+If your user cannot access Docker, either run the commands with `sudo` or add your user to the `docker` group and log out/in:
+
+```bash
+sudo usermod -aG docker "$USER"
+```
+
 To run it in the background:
 
 ```bash

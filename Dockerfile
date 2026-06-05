@@ -9,7 +9,7 @@ RUN mvn -q -DskipTests package
 FROM eclipse-temurin:25-jre-noble
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg \
+    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
