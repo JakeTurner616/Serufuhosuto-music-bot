@@ -1,23 +1,34 @@
 <a name="readme-top"></a>
 
-# Serufuhosuto Music Bot
+<br />
+<div align="center">
+  <h1>セルフホスト (Self Hosted) Music Bot 🎵</h1>
+  <p align="center">
+    A minimal, high-quality Discord music streaming bot built for real-time, self-hosted control with near zero bloat.
+    <br />
+    <a href="https://github.com/JakeTurner616/Serufuhosuto-music-bot"><strong>View the Source »</strong></a>
+    <br /><br />
+  </p>
 
-A minimal self-hosted Discord music bot built for real-time control using JDA 6, JDAVE, yt-dlp, and FFmpeg.
+  <p align="center">
 
-[![Build](https://img.shields.io/github/actions/workflow/status/JakeTurner616/Serufuhosuto-music-bot/manual-release.yml?label=Build&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/actions/workflows/manual-release.yml)
-[![Release](https://img.shields.io/github/v/release/JakeTurner616/Serufuhosuto-music-bot?label=Release&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/releases)
-[![yt-dlp Release](https://img.shields.io/pypi/v/yt-dlp?color=brightgreen&label=yt-dlp%20latest&style=for-the-badge)](https://pypi.org/project/yt-dlp/)
+  [![Build](https://img.shields.io/github/actions/workflow/status/JakeTurner616/Serufuhosuto-music-bot/manual-release.yml?label=Build&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/actions/workflows/manual-release.yml "Build Status")
+  [![Release](https://img.shields.io/github/v/release/JakeTurner616/Serufuhosuto-music-bot?label=Release&style=for-the-badge)](https://github.com/JakeTurner616/Serufuhosuto-music-bot/releases "Latest Release")
+  [![yt-dlp CI](https://img.shields.io/github/actions/workflow/status/yt-dlp/yt-dlp/core.yml?branch=master&label=yt-dlp%20Build&style=for-the-badge)](https://github.com/yt-dlp/yt-dlp/actions "yt-dlp CI")
+  [![yt-dlp Release](https://img.shields.io/pypi/v/yt-dlp?color=brightgreen&label=yt-dlp%20latest&style=for-the-badge)](https://pypi.org/project/yt-dlp/ "yt-dlp Latest")
+  </p>
+</div>
 
-## About
+---
 
-Serufuhosuto Music Bot streams audio in Discord voice channels without third-party music APIs. It uses:
+## About The Project
 
-- Java 25
-- JDA 6.4.1
-- JDAVE 0.1.8 for Discord DAVE/E2EE voice support
-- yt-dlp for media extraction
-- FFmpeg for PCM audio decoding
-- Maven Shade Plugin for a runnable jar
+セルフホスト (Self Hosted) Music Bot is a modern Java-based Discord bot built for high-quality music streaming using `yt-dlp`, `ffmpeg`, JDA 6, and DAVE for Discord voice channels using E2EE (mandatory since March 1, 2026)
+
+- No tracking
+- No third-party music APIs
+- Self-hosted and easy to repair when YouTube inevitably changes something
+- DAVE-capable E2EE Discord voice support 
 
 ## Discord Bot Setup
 
@@ -105,7 +116,7 @@ Build and run in the foreground:
 
 ```bash
 docker compose build
-docker compose up -d
+docker compose up
 ```
 
 If your system uses the older Compose command:
