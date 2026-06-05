@@ -16,8 +16,17 @@ public class YtDlpExtractorTest {
     private static final String YTDLP_EXECUTABLE = resolveYtDlpExecutable();
 
     private static String resolveYtDlpExecutable() {
-        Path local = Path.of("tools", "yt-dlp.exe");
-        return Files.exists(local) ? local.toString() : "yt-dlp";
+        Path windowsLocal = Path.of("tools", "yt-dlp.exe");
+        if (Files.exists(windowsLocal)) {
+            return windowsLocal.toString();
+        }
+
+        Path linuxLocal = Path.of("tools", "yt-dlp");
+        if (Files.exists(linuxLocal)) {
+            return linuxLocal.toString();
+        }
+
+        return "yt-dlp";
     }
 
     @Test

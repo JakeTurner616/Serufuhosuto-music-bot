@@ -34,7 +34,7 @@
 
 ## ⚙️ Built With
 
-- ☕ Java 17+ for compilation, Java 21+ recommended for runtime
+- ☕ Java 25+ for compilation and runtime
 - 🎧 [JDA 6.4.1](https://github.com/discord-jda/JDA)
 - 🔐 JDAVE 0.1.8 with native artifacts for Windows x64, Linux x64, Linux ARM64, and macOS
 - 🧪 [yt-dlp](https://github.com/yt-dlp/yt-dlp)
@@ -45,7 +45,7 @@
 
 ## Prerequisites
 
-- Java installed and available as `java`
+- Java 25+ installed and available as `java`
 - FFmpeg installed and available as `ffmpeg`
 - A Discord bot token
 - Message Content Intent enabled for the bot in the Discord Developer Portal
@@ -153,7 +153,12 @@ For Debian or Ubuntu:
 
 ```bash
 sudo apt update
-sudo apt install -y git maven openjdk-21-jre-headless ffmpeg curl
+sudo apt install -y git maven ffmpeg curl wget gpg
+wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /etc/apt/keyrings/adoptium.gpg
+echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+sudo apt update
+sudo apt install -y temurin-25-jdk
+java --version
 ```
 
 Clone and enter the repo:
