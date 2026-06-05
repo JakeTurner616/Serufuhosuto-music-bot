@@ -30,6 +30,7 @@ public class StreamSendHandler implements AudioSendHandler {
 
     private volatile boolean running = true;
     private volatile boolean feederDone = false;
+    private volatile boolean loggedFirstFrame = false;
 
     public StreamSendHandler(InputStream ffmpegStdout, Runnable onEnd) {
         System.out.println("[DEBUG] StreamSendHandler PCM " + SAMPLE_RATE + "Hz " + CHANNELS +
@@ -44,6 +45,10 @@ public class StreamSendHandler implements AudioSendHandler {
                         Arrays.fill(frame, totalRead, FRAME_SIZE, (byte) 0);
                     }
                     frameQueue.put(Arrays.copyOf(frame, FRAME_SIZE));
+                    if (!loggedFirstFrame) {
+                        loggedFirstFrame = true;
+                        System.out.println("[DEBUG] First PCM frame buffered from ffmpeg.");
+                    }
                 }
             } catch (InterruptedException ignored) {
             } catch (Exception e) {

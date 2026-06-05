@@ -182,8 +182,8 @@ public class PlayCommand extends ListenerAdapter {
                     query
             ).start();
 
-            // Drain stderr so yt-dlp can't block, but don't mix it into stdout
-            drainAsync(yt.getErrorStream(), "yt-dlp-stderr");
+            // Drain stderr so yt-dlp can't block, but don't mix it into stdout.
+            drainAsync(yt.getErrorStream(), "yt-dlp-stderr", "yt-dlp");
 
             BufferedReader out = new BufferedReader(new InputStreamReader(yt.getInputStream()));
             String streamUrl = null;
@@ -204,7 +204,10 @@ public class PlayCommand extends ListenerAdapter {
                 }
             }
 
-            yt.waitFor();
+            int exitCode = yt.waitFor();
+            if (exitCode != 0) {
+                System.err.println("[ERROR] yt-dlp exited with code " + exitCode + " for query: " + query);
+            }
             if (streamUrl == null || streamUrl.isBlank()) {
                 return null;
             }
@@ -235,31 +238,42 @@ public class PlayCommand extends ListenerAdapter {
                     normalizedQuery
             ).start();
 
-            drainAsync(meta.getErrorStream(), "yt-dlp-meta-stderr");
+            drainAsync(meta.getErrorStream(), "yt-dlp-meta-stderr", "yt-dlp-meta");
 
             BufferedReader stdout = new BufferedReader(new InputStreamReader(meta.getInputStream()));
             String title;
             while ((title = stdout.readLine()) != null) {
                 title = title.trim();
                 if (!title.isEmpty()) {
-                    meta.waitFor();
+                    int exitCode = meta.waitFor();
+                    if (exitCode != 0) {
+                        System.err.println("[WARN] yt-dlp title lookup exited with code " + exitCode + " for query: " + normalizedQuery);
+                    }
                     return title;
                 }
             }
 
-            meta.waitFor();
+            int exitCode = meta.waitFor();
+            if (exitCode != 0) {
+                System.err.println("[WARN] yt-dlp title lookup exited with code " + exitCode + " for query: " + normalizedQuery);
+            }
         } catch (Exception ignored) {
         }
 
         return fallback;
     }
 
-    private void drainAsync(InputStream in, String threadName) {
+    private void drainAsync(InputStream in, String threadName, String logPrefix) {
         Thread t = new Thread(() -> {
-            try (in) {
-                byte[] buf = new byte[2048];
-                while (in.read(buf) != -1) { /* discard */ }
-            } catch (Exception ignored) {}
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.isBlank()) {
+                        System.err.println("[" + logPrefix + "] " + line);
+                    }
+                }
+            } catch (Exception ignored) {
+            }
         }, threadName);
         t.setDaemon(true);
         t.start();
